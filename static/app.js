@@ -210,7 +210,7 @@ function getTargetEmpId() {
     const matchedGlobal = allEmployeesList.find(e => e.emp_name === inputName || e.emp_id === inputName);
     if (matchedGlobal) return matchedGlobal.emp_id;
 
-    return "GBSA2018012";
+    return null;
 }
 
 // Handle Check-in Action

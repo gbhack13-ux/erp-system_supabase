@@ -1,6 +1,5 @@
 import os
 import io
-import csv
 import urllib.parse
 from datetime import datetime
 from typing import Optional, List
@@ -169,8 +168,7 @@ def process_check_in(req: CheckInRequest):
             emp_name = str(emp_match.iloc[0]["emp_name"])
             dept_name = str(emp_match.iloc[0]["dept_name"])
         else:
-            emp_name = "안송이"
-            dept_name = "AI산업팀"
+            raise HTTPException(status_code=404, detail=f"사번 {emp_id}에 해당하는 사원 정보가 Supabase에 없습니다.")
 
         new_row = {
             "emp_id": emp_id,
@@ -217,8 +215,7 @@ def process_check_out(req: CheckOutRequest):
             emp_name = str(emp_match.iloc[0]["emp_name"])
             dept_name = str(emp_match.iloc[0]["dept_name"])
         else:
-            emp_name = "안송이"
-            dept_name = "AI산업팀"
+            raise HTTPException(status_code=404, detail=f"사번 {emp_id}에 해당하는 사원 정보가 Supabase에 없습니다.")
 
         new_row = {
             "emp_id": emp_id,
