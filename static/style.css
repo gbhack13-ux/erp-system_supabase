@@ -1,0 +1,391 @@
+/* GBSA Classic Legacy ERP CSS Style */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 !important; /* Force 100% rectangular legacy design */
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    font-family: "Pretendard", "돋움", Dotum, "굴림", Gulim, AppleGothic, sans-serif;
+    font-size: 12px;
+    color: #222222;
+    background-color: #f4f6f9;
+    overflow-x: hidden;
+}
+
+/* Layout Wrapper */
+.erp-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 1. Primary Left Sidebar (Tier 1: Dark Deep Green) */
+.sidebar-primary {
+    width: 120px;
+    background-color: #122417; /* Deep forest green */
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-right: 1px solid #09140c;
+}
+
+.sidebar-brand {
+    height: 38px;
+    background-color: #0b170e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 12px;
+    color: #4caf50;
+    border-bottom: 1px solid #1c3623;
+}
+
+.primary-nav {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.primary-nav li {
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #c8e6c9;
+    cursor: pointer;
+    border-bottom: 1px solid #1b3321;
+    transition: background-color 0.1s;
+}
+
+.primary-nav li i {
+    font-size: 14px;
+    color: #81c784;
+}
+
+.primary-nav li:hover {
+    background-color: #1d3a25;
+    color: #ffffff;
+}
+
+.primary-nav li.active {
+    background-color: #2e7d32;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.primary-nav li.active i {
+    color: #ffffff;
+}
+
+/* 2. Secondary Left Sub-Menu Panel (Tier 2: Light Gray) */
+.sidebar-secondary {
+    width: 220px;
+    background-color: #e9ecef;
+    border-right: 1px solid #ced4da;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sub-header {
+    height: 38px;
+    background-color: #dee2e6;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 12px;
+    color: #343a40;
+    border-bottom: 1px solid #ced4da;
+}
+
+.sub-nav {
+    list-style: none;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.sub-nav li {
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #495057;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid #e2e6ea;
+}
+
+.sub-nav li i {
+    margin-right: 4px;
+    color: #6c757d;
+}
+
+.sub-nav li:hover {
+    background-color: #dde1e5;
+    color: #212529;
+}
+
+.sub-nav li.active {
+    background-color: #ffffff;
+    color: #1b5e20;
+    font-weight: bold;
+    border-left: 3px solid #2e7d32;
+    border-right: 1px solid #ffffff;
+    margin-right: -1px;
+}
+
+/* 3. Main Content Area */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+/* Top System Header Bar */
+.top-title-bar {
+    height: 38px;
+    background-color: #f1f3f5;
+    border-bottom: 1px solid #ced4da;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+}
+
+.breadcrumb {
+    font-size: 12px;
+    color: #495057;
+}
+
+.breadcrumb i {
+    color: #6c757d;
+    margin-right: 4px;
+}
+
+.user-info {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+/* Search Condition Form Box */
+.search-form-bar {
+    background-color: #eef2f5;
+    border: 1px solid #ced4da;
+    margin: 10px 14px 6px 14px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-fields {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: bold;
+    font-size: 12px;
+    color: #333333;
+}
+
+.erp-input {
+    border: 1px solid #adb5bd;
+    background-color: #ffffff;
+    padding: 3px 6px;
+    font-size: 12px;
+    color: #212529;
+    outline: none;
+}
+
+.erp-input:focus {
+    border-color: #2e7d32;
+    box-shadow: inset 0 0 2px rgba(46, 125, 50, 0.4);
+}
+
+.date-input {
+    width: 125px;
+}
+
+.text-input {
+    width: 100px;
+}
+
+/* Control Buttons */
+.search-buttons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn {
+    border: 1px solid #7f8c8d;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #ffffff;
+}
+
+.btn-search {
+    background-color: #2c3e50;
+    border-color: #1a252f;
+}
+.btn-search:hover { background-color: #1a252f; }
+
+.btn-checkin {
+    background-color: #27ae60;
+    border-color: #1e8449;
+}
+.btn-checkin:hover { background-color: #1e8449; }
+
+.btn-checkout {
+    background-color: #8e44ad;
+    border-color: #71279b;
+}
+.btn-checkout:hover { background-color: #71279b; }
+
+.btn-excel {
+    background-color: #1e7e34;
+    border-color: #145523;
+}
+.btn-excel:hover { background-color: #145523; }
+
+/* Grid Status Header Bar */
+.grid-status-bar {
+    padding: 4px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+}
+
+.status-title {
+    font-weight: bold;
+    font-size: 12px;
+    color: #2c3e50;
+}
+
+.status-hint {
+    font-size: 11px;
+    color: #e67e22;
+}
+
+/* Legacy Excel Table Grid */
+.table-wrapper {
+    flex: 1;
+    margin: 0 14px 10px 14px;
+    border: 1px solid #abb2b9;
+    overflow: auto;
+    background-color: #ffffff;
+}
+
+.legacy-grid-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 12px;
+}
+
+.legacy-grid-table th {
+    background-color: #e5e8e8;
+    color: #2c3e50;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px 4px;
+    border: 1px solid #bdc3c7;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.legacy-grid-table td {
+    padding: 4px 6px;
+    border: 1px solid #d5dbdb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333333;
+}
+
+.legacy-grid-table tbody tr {
+    background-color: #ffffff;
+}
+
+.legacy-grid-table tbody tr:nth-child(even) {
+    background-color: #f8f9f9;
+}
+
+.legacy-grid-table tbody tr:hover {
+    background-color: #e8f8f5;
+}
+
+.legacy-grid-table tbody tr.selected-row {
+    background-color: #d4efdf !important;
+    font-weight: bold;
+}
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* Bottom Legacy Footer */
+.legacy-footer {
+    height: 26px;
+    background-color: #e9ecef;
+    border-top: 1px solid #ced4da;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    color: #6c757d;
+}
+
+/* Alert Box */
+.erp-alert-box {
+    position: fixed;
+    bottom: 35px;
+    right: 20px;
+    background-color: #2c3e50;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: 1px solid #1a252f;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1000;
+}
+
+.hidden {
+    display: none !important;
+}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태리더기내역조회(개인)_gbsa - GBSA ERP System</title>
+    <!-- FontAwesome for classic icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS / XLSX library for client-side / server Excel file download -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <div class="erp-container">
+        
+        <!-- Tier 1: Primary Dark Sidebar (최좌측 딥그린 아이콘 메뉴) -->
+        <div class="sidebar-primary">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>GBSA ERP</span>
+            </div>
+            <ul class="primary-nav">
+                <li><i class="fa-solid fa-sliders"></i><span>기본정보</span></li>
+                <li><i class="fa-solid fa-calculator"></i><span>예산관리</span></li>
+                <li><i class="fa-solid fa-coins"></i><span>지출/수입관리</span></li>
+                <li><i class="fa-solid fa-file-invoice-dollar"></i><span>회계관리</span></li>
+                <li><i class="fa-solid fa-users"></i><span>인사관리</span></li>
+                <li class="active"><i class="fa-solid fa-calendar-check"></i><span>근태관리</span></li>
+                <li><i class="fa-solid fa-wallet"></i><span>급여관리</span></li>
+                <li><i class="fa-solid fa-cart-shopping"></i><span>구매계약</span></li>
+                <li><i class="fa-solid fa-boxes-stacked"></i><span>물품관리</span></li>
+            </ul>
+        </div>
+
+        <!-- Tier 2: Secondary Sub-Menu Panel (서브 메뉴 영역) -->
+        <div class="sidebar-secondary">
+            <div class="sub-header">
+                <i class="fa-solid fa-sitemap"></i>
+                <span>[인사/근태관리]</span>
+            </div>
+            <ul class="sub-nav">
+                <li><i class="fa-regular fa-folder"></i> [운영] 사용자등록/권한</li>
+                <li><i class="fa-regular fa-folder"></i> [운영] 사용자정의코드/운영정보(공공)</li>
+                <li><i class="fa-regular fa-folder"></i> [기본] 사업정보 및 조직화 ...</li>
+                <li><i class="fa-regular fa-folder"></i> [인사] 기본정보</li>
+                <li><i class="fa-regular fa-folder"></i> [급여] 기본정보</li>
+                <li><i class="fa-regular fa-folder"></i> [급여] 근태기본정보</li>
+                <li><i class="fa-regular fa-folder"></i> [회계] 기본정보_gbsa</li>
+                <li class="active"><i class="fa-regular fa-file-lines"></i> [기본] 근태리더기내역조회(개인)_gbsa</li>
+            </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            
+            <!-- Top System Header Bar -->
+            <div class="top-title-bar">
+                <div class="breadcrumb">
+                    <i class="fa-solid fa-house"></i> 홈 &gt; 근태관리 &gt; <strong>근태리더기내역조회(개인)_gbsa</strong>
+                </div>
+                <div class="user-info">
+                    <span id="currentClock">2026-10-02 00:00:00</span> | 
+                    <span>사용자: <strong>안송이 (AI산업팀)</strong></span>
+                </div>
+            </div>
+
+            <!-- Top Search Condition Box (Form Bar) -->
+            <div class="search-form-bar">
+                <div class="search-fields">
+                    <div class="form-group">
+                        <label for="startDate">기준일:</label>
+                        <input type="date" id="startDate" value="2026-09-02" class="erp-input date-input">
+                        <span>~</span>
+                        <input type="date" id="endDate" value="2026-10-02" class="erp-input date-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="empName">사원명:</label>
+                        <input type="text" id="empName" value="안송이" placeholder="사원명 또는 사번" class="erp-input text-input">
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="search-buttons">
+                    <button type="button" onclick="loadAttendanceLogs()" class="btn btn-search">
+                        <i class="fa-solid fa-magnifying-glass"></i> 조회
+                    </button>
+                    <button type="button" onclick="handleCheckIn()" class="btn btn-checkin">
+                        <i class="fa-solid fa-user-check"></i> 출근
+                    </button>
+                    <button type="button" onclick="handleCheckOut()" class="btn btn-checkout">
+                        <i class="fa-solid fa-user-clock"></i> 퇴근
+                    </button>
+                    <button type="button" onclick="downloadExcel()" class="btn btn-excel">
+                        <i class="fa-solid fa-file-excel"></i> 파일다운로드
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Table Grid Header Status -->
+            <div class="grid-status-bar">
+                <div class="status-title">
+                    <i class="fa-solid fa-table"></i> 근태리더기 내역 상세 (조회결과: <span id="recordCount">0</span>건)
+                </div>
+                <div class="status-hint">
+                    * 행을 클릭하여 사원을 선택한 후 [출근] 또는 [퇴근] 버튼을 누르시면 반영됩니다.
+                </div>
+            </div>
+
+            <!-- Legacy Excel-style Grid Table -->
+            <div class="table-wrapper">
+                <table class="legacy-grid-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px;">No</th>
+                            <th style="width: 95px;">근무일</th>
+                            <th style="width: 90px;">사원</th>
+                            <th style="width: 105px;">사번</th>
+                            <th style="width: 140px;">부서</th>
+                            <th style="width: 140px;">카드번호</th>
+                            <th style="width: 110px;">근무유형(ERP)</th>
+                            <th style="width: 110px;">근무형태(ERP)</th>
+                            <th style="width: 95px;">출근시간</th>
+                            <th style="width: 95px;">퇴근시간</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridTbody">
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 20px; color: #666;">
+                                데이터를 로딩 중입니다...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bottom Status Footer -->
+            <div class="legacy-footer">
+                <span>[GBSA 사내 ERP] 경기도경제과학진흥원 정보화시스템</span>
+                <span>상태: 정상 (온라인)</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Alert / Toast Container -->
+    <div id="erpAlert" class="erp-alert-box hidden">
+        <span id="erpAlertMsg">처리 메시지</span>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
