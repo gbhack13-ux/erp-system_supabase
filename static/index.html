@@ -61,7 +61,7 @@
                 </div>
                 <div class="user-info">
                     <span id="currentClock">2026-10-02 00:00:00</span> | 
-                    <span>사용자: <strong>안송이 (AI산업팀)</strong></span>
+                    <span id="currentUserDisplay">사용자: <strong>전체 사원 (3개 부서)</strong></span>
                 </div>
             </div>
 
@@ -75,8 +75,14 @@
                         <input type="date" id="endDate" value="2026-10-02" class="erp-input date-input">
                     </div>
                     <div class="form-group">
+                        <label for="empSelect">사원선택:</label>
+                        <select id="empSelect" onchange="handleEmpSelectChange()" class="erp-input select-input" style="min-width: 180px;">
+                            <option value="">[전체] 3개 부서 전체 보기</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="empName">사원명:</label>
-                        <input type="text" id="empName" value="안송이" placeholder="사원명 또는 사번" class="erp-input text-input">
+                        <input type="text" id="empName" value="" placeholder="사원명 또는 사번" class="erp-input text-input" oninput="handleEmpNameInput()">
                     </div>
                 </div>
 
@@ -92,7 +98,7 @@
                         <i class="fa-solid fa-user-clock"></i> 퇴근
                     </button>
                     <button type="button" onclick="downloadExcel()" class="btn btn-excel">
-                        <i class="fa-solid fa-file-excel"></i> 파일다운로드
+                        <i class="fa-solid fa-file-excel"></i> 엑셀다운로드
                     </button>
                 </div>
             </div>

@@ -1,11 +1,13 @@
 // Legacy GBSA ERP System App JS
 
 let attendanceData = [];
+let allEmployeesList = [];
 let selectedRowIndex = -1;
 let selectedEmployeeId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     initClock();
+    initEmployeeOptions();
     loadAttendanceLogs();
 });
 
@@ -26,13 +28,92 @@ function initClock() {
     setInterval(update, 1000);
 }
 
+// Fetch employee list for select dropdown
+async function initEmployeeOptions() {
+    try {
+        const res = await fetch("/api/employees");
+        const json = await res.json();
+        if (json.success && json.employees) {
+            allEmployeesList = json.employees;
+            const selectEl = document.getElementById("empSelect");
+            if (selectEl) {
+                selectEl.innerHTML = `<option value="">[전체] 3개 부서 전체 보기</option>`;
+                allEmployeesList.forEach(emp => {
+                    const opt = document.createElement("option");
+                    opt.value = emp.emp_id;
+                    opt.textContent = `[${emp.dept_name}] ${emp.emp_name} (${emp.emp_id})`;
+                    selectEl.appendChild(opt);
+                });
+            }
+        }
+    } catch (err) {
+        console.error("Employee list load error:", err);
+    }
+}
+
+// Handle Employee Select Box Change
+function handleEmpSelectChange() {
+    const selectEl = document.getElementById("empSelect");
+    const empId = selectEl.value;
+    selectedRowIndex = -1;
+
+    if (empId) {
+        selectedEmployeeId = empId;
+        const matched = allEmployeesList.find(e => e.emp_id === empId);
+        if (matched) {
+            document.getElementById("empName").value = matched.emp_name;
+            updateUserDisplay(matched.emp_name, matched.dept_name);
+        }
+    } else {
+        selectedEmployeeId = null;
+        document.getElementById("empName").value = "";
+        updateUserDisplay("전체 사원", "3개 부서");
+    }
+
+    loadAttendanceLogs();
+}
+
+// Handle Employee Name Text Input
+function handleEmpNameInput() {
+    const nameVal = document.getElementById("empName").value.trim();
+    const selectEl = document.getElementById("empSelect");
+    selectedRowIndex = -1;
+
+    if (nameVal) {
+        const matched = allEmployeesList.find(e => e.emp_name === nameVal || e.emp_id === nameVal);
+        if (matched) {
+            selectedEmployeeId = matched.emp_id;
+            selectEl.value = matched.emp_id;
+            updateUserDisplay(matched.emp_name, matched.dept_name);
+        } else {
+            selectedEmployeeId = null;
+            selectEl.value = "";
+            updateUserDisplay(nameVal, "검색 사원");
+        }
+    } else {
+        selectedEmployeeId = null;
+        selectEl.value = "";
+        updateUserDisplay("전체 사원", "3개 부서");
+    }
+
+    loadAttendanceLogs();
+}
+
+// Update Top User Info Header Bar
+function updateUserDisplay(empName, deptName) {
+    const displayEl = document.getElementById("currentUserDisplay");
+    if (displayEl) {
+        displayEl.innerHTML = `사용자: <strong>${empName} (${deptName})</strong>`;
+    }
+}
+
 // Fetch logs from backend
 async function loadAttendanceLogs() {
     const tbody = document.getElementById("gridTbody");
     tbody.innerHTML = `
         <tr>
             <td colspan="10" class="text-center" style="padding: 20px; color: #666;">
-                <i class="fa-solid fa-spinner fa-spin"></i> 데이터를 조도하는 중입니다...
+                <i class="fa-solid fa-spinner fa-spin"></i> 데이터를 조회하는 중입니다...
             </td>
         </tr>
     `;
@@ -55,7 +136,7 @@ async function loadAttendanceLogs() {
             document.getElementById("recordCount").textContent = attendanceData.length;
             renderGridTable();
         } else {
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center" style="color: red; padding: 20px;">데이터 조도 오류가 발생했습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center" style="color: red; padding: 20px;">데이터 조회 오류가 발생했습니다.</td></tr>`;
         }
     } catch (err) {
         console.error("API Error:", err);
@@ -83,7 +164,7 @@ function renderGridTable() {
         const selectedClass = isSelected ? "selected-row" : "";
 
         return `
-            <tr class="${selectedClass}" onclick="selectGridRow(${index}, '${row.emp_id}', '${row.emp_name}')">
+            <tr class="${selectedClass}" onclick="selectGridRow(${index}, '${row.emp_id}', '${row.emp_name}', '${row.dept_name}')">
                 <td class="text-center">${row.no}</td>
                 <td class="text-center">${row.work_date}</td>
                 <td class="text-center font-bold">${row.emp_name}</td>
@@ -100,16 +181,24 @@ function renderGridTable() {
 }
 
 // Row Click Selection
-function selectGridRow(index, empId, empName) {
+function selectGridRow(index, empId, empName, deptName) {
     selectedRowIndex = index;
     selectedEmployeeId = empId;
+    
     document.getElementById("empName").value = empName;
+    const selectEl = document.getElementById("empSelect");
+    if (selectEl) selectEl.value = empId;
+
+    updateUserDisplay(empName, deptName);
     renderGridTable();
 }
 
-// Get targeted employee ID (selected row or text input)
+// Get targeted employee ID (selected row or text input/select)
 function getTargetEmpId() {
     if (selectedEmployeeId) return selectedEmployeeId;
+
+    const selectEl = document.getElementById("empSelect");
+    if (selectEl && selectEl.value) return selectEl.value;
 
     const inputName = document.getElementById("empName").value.trim();
     if (!inputName) return null;
@@ -118,7 +207,9 @@ function getTargetEmpId() {
     const matched = attendanceData.find(r => r.emp_name === inputName || r.emp_id === inputName);
     if (matched) return matched.emp_id;
 
-    // Fallback default
+    const matchedGlobal = allEmployeesList.find(e => e.emp_name === inputName || e.emp_id === inputName);
+    if (matchedGlobal) return matchedGlobal.emp_id;
+
     return "GBSA2018012";
 }
 
@@ -197,6 +288,7 @@ async function handleCheckOut() {
         showErpAlert(`통신 오류: ${err.message}`);
     }
 }
+
 
 // Download Excel File
 function downloadExcel() {

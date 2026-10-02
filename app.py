@@ -55,13 +55,16 @@ class CheckOutRequest(BaseModel):
 
 def read_logs_df() -> pd.DataFrame:
     path = get_csv_path()
-    df = pd.read_csv(path, dtype=str)
+    try:
+        df = pd.read_csv(path, dtype=str, encoding="utf-8-sig")
+    except Exception:
+        df = pd.read_csv(path, dtype=str, encoding="utf-8")
     df = df.fillna("")
     return df
 
 def save_logs_df(df: pd.DataFrame):
-    path = CSV_FILE_PATH
-    df.to_csv(path, index=False, encoding="utf-8")
+    path = get_csv_path()
+    df.to_csv(path, index=False, encoding="utf-8-sig")
 
 def get_filtered_logs(
     start_date: Optional[str] = None,
@@ -72,20 +75,21 @@ def get_filtered_logs(
     df = read_logs_df()
     filtered = df.copy()
 
-    if start_date and start_date.strip():
+    if start_date and isinstance(start_date, str) and start_date.strip():
         filtered = filtered[filtered["work_date"] >= start_date.strip()]
 
-    if end_date and end_date.strip():
+    if end_date and isinstance(end_date, str) and end_date.strip():
         filtered = filtered[filtered["work_date"] <= end_date.strip()]
 
-    if emp_name and emp_name.strip():
+    if emp_name and isinstance(emp_name, str) and emp_name.strip():
         q = emp_name.strip()
         filtered = filtered[
             filtered["emp_name"].str.contains(q, case=False, na=False) |
-            filtered["emp_id"].str.contains(q, case=False, na=False)
+            filtered["emp_id"].str.contains(q, case=False, na=False) |
+            filtered["dept_name"].str.contains(q, case=False, na=False)
         ]
 
-    if emp_id and emp_id.strip():
+    if emp_id and isinstance(emp_id, str) and emp_id.strip():
         filtered = filtered[filtered["emp_id"] == emp_id.strip()]
 
     filtered = filtered.sort_values(by=["work_date", "emp_id"], ascending=[False, True])
@@ -98,7 +102,12 @@ def get_attendance_logs(
     emp_name: Optional[str] = Query(None),
     emp_id: Optional[str] = Query(None)
 ):
-    filtered = get_filtered_logs(start_date, end_date, emp_name, emp_id)
+    s_date = start_date if isinstance(start_date, str) else None
+    e_date = end_date if isinstance(end_date, str) else None
+    e_name = emp_name if isinstance(emp_name, str) else None
+    e_id = emp_id if isinstance(emp_id, str) else None
+
+    filtered = get_filtered_logs(s_date, e_date, e_name, e_id)
     
     result = []
     for idx, row in enumerate(filtered.to_dict(orient="records"), start=1):
@@ -139,10 +148,16 @@ def process_check_in(req: CheckInRequest):
         df.at[idx, "check_in_time"] = now_time
         if df.at[idx, "status"] == "미조치" or not df.at[idx, "status"]:
             df.at[idx, "status"] = "조치완료"
+        emp_name = str(df.at[idx, "emp_name"])
+        dept_name = str(df.at[idx, "dept_name"])
     else:
         emp_match = df[df["emp_id"] == emp_id]
-        emp_name = emp_match.iloc[0]["emp_name"] if not emp_match.empty else "안송이"
-        dept_name = emp_match.iloc[0]["dept_name"] if not emp_match.empty else "AI산업팀"
+        if not emp_match.empty:
+            emp_name = str(emp_match.iloc[0]["emp_name"])
+            dept_name = str(emp_match.iloc[0]["dept_name"])
+        else:
+            emp_name = "안송이"
+            dept_name = "AI산업팀"
 
         new_row = {
             "emp_id": emp_id,
@@ -160,8 +175,10 @@ def process_check_in(req: CheckInRequest):
     save_logs_df(df)
     return {
         "success": True,
-        "message": f"[{emp_id}] {today} {now_time} 출근 처리가 완료되었습니다.",
+        "message": f"[{emp_id}] {emp_name}({dept_name}) {today} {now_time} 출근 처리가 완료되었습니다. (CSV 백데이터 저장 완료)",
         "emp_id": emp_id,
+        "emp_name": emp_name,
+        "dept_name": dept_name,
         "work_date": today,
         "check_in_time": now_time
     }
@@ -179,10 +196,16 @@ def process_check_out(req: CheckOutRequest):
         idx = df[mask].index[0]
         df.at[idx, "check_out_time"] = now_time
         df.at[idx, "status"] = "조치완료"
+        emp_name = str(df.at[idx, "emp_name"])
+        dept_name = str(df.at[idx, "dept_name"])
     else:
         emp_match = df[df["emp_id"] == emp_id]
-        emp_name = emp_match.iloc[0]["emp_name"] if not emp_match.empty else "안송이"
-        dept_name = emp_match.iloc[0]["dept_name"] if not emp_match.empty else "AI산업팀"
+        if not emp_match.empty:
+            emp_name = str(emp_match.iloc[0]["emp_name"])
+            dept_name = str(emp_match.iloc[0]["dept_name"])
+        else:
+            emp_name = "안송이"
+            dept_name = "AI산업팀"
 
         new_row = {
             "emp_id": emp_id,
@@ -200,11 +223,34 @@ def process_check_out(req: CheckOutRequest):
     save_logs_df(df)
     return {
         "success": True,
-        "message": f"[{emp_id}] {today} {now_time} 퇴근 처리가 완료되었습니다.",
+        "message": f"[{emp_id}] {emp_name}({dept_name}) {today} {now_time} 퇴근 처리가 완료되었습니다. (CSV 백데이터 저장 완료)",
         "emp_id": emp_id,
+        "emp_name": emp_name,
+        "dept_name": dept_name,
         "work_date": today,
         "check_out_time": now_time
     }
+
+@app.get("/api/attendance/export/csv")
+def export_csv(
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    emp_name: Optional[str] = Query(None)
+):
+    try:
+        filtered = get_filtered_logs(start_date, end_date, emp_name)
+        stream = io.StringIO()
+        filtered.to_csv(stream, index=False, encoding="utf-8-sig")
+        
+        raw_filename = f"GBSA_attendance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        encoded_filename = urllib.parse.quote(f"GBSA_근태리더기내역_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+
+        headers = {
+            'Content-Disposition': f'attachment; filename="{raw_filename}"; filename*=UTF-8\'\'{encoded_filename}'
+        }
+        return Response(content=stream.getvalue(), media_type="text/csv", headers=headers)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"CSV export error: {str(e)}")
 
 @app.get("/api/attendance/export/excel")
 def export_excel(
